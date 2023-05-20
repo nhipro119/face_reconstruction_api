@@ -43,8 +43,8 @@ class Model(nn.Module):
         #self.final_linear = Conv1d(self.channel_lst[-1], 3, kernel_size=1)        
         
         #####For Laplace computation######
-        self.initial_neighbor_id_lstlst = torch.LongTensor(param.neighbor_id_lstlst).cuda()#point_num*max_neighbor_num
-        self.initial_neighbor_num_lst = torch.FloatTensor(param.neighbor_num_lst).cuda() #point_num
+        self.initial_neighbor_id_lstlst = torch.LongTensor(param.neighbor_id_lstlst).cpu()#point_num*max_neighbor_num
+        self.initial_neighbor_num_lst = torch.FloatTensor(param.neighbor_num_lst).cpu() #point_num
         
         self.initial_max_neighbor_num = self.initial_neighbor_id_lstlst.shape[1]
         
@@ -91,20 +91,20 @@ class Model(nn.Module):
             connection_info  = np.load(self.connection_layer_fn_lst[l])
             print ("##Layer",self.connection_layer_fn_lst[l])
             out_point_num = connection_info.shape[0]
-            neighbor_num_lst = torch.FloatTensor(connection_info[:,0].astype(float)).cuda() #out_point_num*1
+            neighbor_num_lst = torch.FloatTensor(connection_info[:,0].astype(float)).cpu() #out_point_num*1
             neighbor_id_dist_lstlst = connection_info[:, 1:] #out_point_num*(max_neighbor_num*2)
             neighbor_id_lstlst = neighbor_id_dist_lstlst.reshape((out_point_num, -1,2))[:,:,0] #out_point_num*max_neighbor_num
-            neighbor_id_lstlst = torch.LongTensor(neighbor_id_lstlst).cuda()
+            neighbor_id_lstlst = torch.LongTensor(neighbor_id_lstlst).cpu()
             max_neighbor_num = neighbor_id_lstlst.shape[1]
             avg_neighbor_num = round(neighbor_num_lst.mean().item())
             effective_w_weights_rate = (neighbor_num_lst.sum()/ float(max_neighbor_num * out_point_num))
             effective_w_weights_rate = round(effective_w_weights_rate.item(),3)
 
-            pc_mask  = torch.ones(in_point_num+1).cuda()
+            pc_mask  = torch.ones(in_point_num+1).cpu()
             pc_mask[in_point_num]=0
             neighbor_mask_lst = pc_mask[neighbor_id_lstlst].contiguous() #out_pn*max_neighbor_num neighbor is 1 otherwise 0
             
-            zeros_batch_outpn_outchannel = torch.zeros((batch, out_point_num, out_channel)).cuda()
+            zeros_batch_outpn_outchannel = torch.zeros((batch, out_point_num, out_channel)).cpu()
 
             if((residual_rate<0) or (residual_rate>1)):
                 print ("Invalid residual rate", residual_rate)
@@ -112,22 +112,22 @@ class Model(nn.Module):
             conv_layer = ""
 
             if(residual_rate <1):
-                weights = torch.randn(weight_num, out_channel*in_channel).cuda()
+                weights = torch.randn(weight_num, out_channel*in_channel).cpu()
                 
-                weights = nn.Parameter(weights).cuda()
+                weights = nn.Parameter(weights).cpu()
                 
                 self.register_parameter("weights"+str(l),weights)
                 
     
-                bias = nn.Parameter(torch.zeros(out_channel).cuda())
+                bias = nn.Parameter(torch.zeros(out_channel).cpu())
                 if(self.perpoint_bias == 1):
-                    bias= nn.Parameter(torch.zeros(out_point_num, out_channel).cuda())
+                    bias= nn.Parameter(torch.zeros(out_point_num, out_channel).cpu())
                 self.register_parameter("bias"+str(l),bias)
                 
 
                 w_weights=torch.randn(out_point_num, max_neighbor_num, weight_num)/(avg_neighbor_num*weight_num)
 
-                w_weights = nn.Parameter(w_weights.cuda())
+                w_weights = nn.Parameter(w_weights.cpu())
                 self.register_parameter("w_weights"+str(l),w_weights)
                 
                 
@@ -144,14 +144,14 @@ class Model(nn.Module):
                 weight_res = ""
 
                 if(out_point_num != in_point_num) : 
-                    p_neighbors = nn.Parameter((torch.randn(out_point_num, max_neighbor_num)/(avg_neighbor_num)).cuda())
+                    p_neighbors = nn.Parameter((torch.randn(out_point_num, max_neighbor_num)/(avg_neighbor_num)).cpu())
                     self.register_parameter("p_neighbors"+str(l),p_neighbors)
                 
                 if(out_channel != in_channel):
                     weight_res = torch.randn(out_channel,in_channel)
                     #self.normalize_weights(weight_res)
                     weight_res = weight_res/out_channel
-                    weight_res = nn.Parameter(weight_res.cuda())
+                    weight_res = nn.Parameter(weight_res.cpu())
                     self.register_parameter("weight_res"+str(l),weight_res)
                 
                 residual_layer = (weight_res, p_neighbors)
@@ -236,7 +236,7 @@ class Model(nn.Module):
         in_channel, out_channel, in_pn, out_pn, weight_num,  max_neighbor_num, neighbor_num_lst,neighbor_id_lstlst, conv_layer, residual_layer, residual_rate, neighbor_mask_lst, zeros_batch_outpn_outchannel=layer_info
         
         
-        in_pc_pad = torch.cat((in_pc, torch.zeros(batch, 1, in_channel).cuda()), 1) #batch*(in_pn+1)*in_channel
+        in_pc_pad = torch.cat((in_pc, torch.zeros(batch, 1, in_channel).cpu()), 1) #batch*(in_pn+1)*in_channel
 
         in_neighbors = in_pc_pad[:, neighbor_id_lstlst] #batch*out_pn*max_neighbor_num*in_channel
 
@@ -287,7 +287,7 @@ class Model(nn.Module):
         in_channel, out_channel, in_pn, out_pn, weight_num,  max_neighbor_num, neighbor_num_lst,neighbor_id_lstlst, conv_layer, residual_layer, residual_rate,neighbor_mask_lst, zeros_batch_outpn_outchannel=layer_info
         
         
-        in_pc_pad = torch.cat((in_pc, torch.zeros(batch, 1, in_channel).cuda()), 1) #batch*(in_pn+1)*in_channel
+        in_pc_pad = torch.cat((in_pc, torch.zeros(batch, 1, in_channel).cpu()), 1) #batch*(in_pn+1)*in_channel
 
         in_neighbors = in_pc_pad[:, neighbor_id_lstlst] #batch*out_pn*max_neighbor_num*in_channel
 
@@ -456,8 +456,8 @@ class Model(nn.Module):
         
         batch = gt_pc.shape[0]
         
-        gt_pc = torch.cat((gt_pc, torch.zeros(batch, 1, 3).cuda()), 1)
-        predict_pc = torch.cat((predict_pc, torch.zeros(batch, 1, 3).cuda()), 1)
+        gt_pc = torch.cat((gt_pc, torch.zeros(batch, 1, 3).cpu()), 1)
+        predict_pc = torch.cat((predict_pc, torch.zeros(batch, 1, 3).cpu()), 1)
         
         batch = gt_pc.shape[0]
         
@@ -498,8 +498,8 @@ class Model(nn.Module):
         
         batch = gt_pc.shape[0]
         
-        gt_pc = torch.cat((gt_pc, torch.zeros(batch, 1, 3).cuda()), 1)
-        predict_pc = torch.cat((predict_pc, torch.zeros(batch, 1, 3).cuda()), 1)
+        gt_pc = torch.cat((gt_pc, torch.zeros(batch, 1, 3).cpu()), 1)
+        predict_pc = torch.cat((predict_pc, torch.zeros(batch, 1, 3).cpu()), 1)
         
         batch = gt_pc.shape[0]
         

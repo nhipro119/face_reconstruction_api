@@ -72,8 +72,8 @@ def get_augmented_pc(pc):
     #T[:,1] = T[:,1]*0
     T=T.repeat(size,0)
 
-    R = torch.FloatTensor(R).cuda()
-    T = torch.FloatTensor(T).cuda()
+    R = torch.FloatTensor(R).cpu()
+    T = torch.FloatTensor(T).cpu()
     new_pc = torch.matmul(R, new_pc.view(size,3,1))+T
 
     #new_pc = np.matmul(R, new_pc.reshape((size,3,1))) +T
@@ -87,10 +87,10 @@ def get_augmented_pcs(pcs):
     size= pcs.shape[1]
 
     scale = torch.rand(batch)*0.2+0.9 #scale 0.7 to 1.1
-    scale = scale.cuda()  #batch
+    scale = scale.cpu()  #batch
     #print (scale)
     T = (torch.rand(batch,3)-0.5)*0.2 #-10cm to 10cm
-    T = T.cuda() #batch*3
+    T = T.cpu() #batch*3
 
     R = []
     for i in range(batch):
@@ -100,7 +100,7 @@ def get_augmented_pcs(pcs):
         mat = euler.axangle2mat(axis,theta) #3,3
         R +=[mat]
 
-    R=torch.FloatTensor(np.array(R)).cuda() #batch*3*3
+    R=torch.FloatTensor(np.array(R)).cpu() #batch*3*3
 
 
     new_pcs  = torch.einsum('b,bsc->bsc',[scale, pcs])
@@ -124,10 +124,10 @@ def get_random_pc_batch_from_ply_fn_lst_torch(ply_fn_lst , batch, augmented=Fals
     #pool = ThreadPool(min(batch,60)) 
     #pc_batch = pool.map(get_pc_from_ply_fn, ply_fn_batch)
     
-    pc_batch=torch.FloatTensor([]).cuda()
+    pc_batch=torch.FloatTensor([]).cpu()
     for ply_fn in ply_fn_batch:
         pc = get_pc_from_ply_fn(ply_fn)
-        new_pc = torch.FloatTensor(pc).cuda()
+        new_pc = torch.FloatTensor(pc).cpu()
         if(augmented==True):
             new_pc = get_augmented_pc(new_pc)
         pc_batch  = torch.cat((pc_batch,new_pc.unsqueeze(0)),0)
@@ -154,7 +154,7 @@ def get_random_pc_batch_from_pc_lst_torch(pc_lst , neighbor_lst, neighbor_num_ls
     
     pcs_index_lst = np.random.randint(0, len(pc_lst), batch)
     pcs = pc_lst[pcs_index_lst]
-    pc_batch = torch.FloatTensor(pcs).cuda()
+    pc_batch = torch.FloatTensor(pcs).cpu()
 
     if(augmented==True):
         pc_batch=get_augmented_pcs(pc_batch)

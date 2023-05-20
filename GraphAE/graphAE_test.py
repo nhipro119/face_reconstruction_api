@@ -61,7 +61,7 @@ def test(param,test_npy_fn, out_ply_folder, skip_frames =0):
     print ("**********Initiate Netowrk**********")
     model=graphAE.Model(param, test_mode=True)
     
-    model.cuda()
+    model.cpu()
     
     if(param.read_weight_path!=""):
         print ("load "+param.read_weight_path)
@@ -98,11 +98,11 @@ def test(param,test_npy_fn, out_ply_folder, skip_frames =0):
         height = pcs[:,:,1].mean(1)
         pcs[:,:,0:3] -= pcs[:,:,0:3].mean(1).reshape((-1,1,3)).repeat(param.point_num, 1) ##centralize each instance
 
-        pcs_torch = torch.FloatTensor(pcs).cuda()
+        pcs_torch = torch.FloatTensor(pcs).cpu()
         if(param.augmented_data==True):
             pcs_torch = Dataloader.get_augmented_pcs(pcs_torch)
         if(batch<param.batch):
-            pcs_torch = torch.cat((pcs_torch, torch.zeros(param.batch-batch, param.point_num, 3).cuda()),0)
+            pcs_torch = torch.cat((pcs_torch, torch.zeros(param.batch-batch, param.point_num, 3).cpu()),0)
 
         out_pcs_torch = model(pcs_torch)
         geo_error = model.compute_geometric_mean_euclidean_dist_error(pcs_torch[0:batch], out_pcs_torch[0:batch])

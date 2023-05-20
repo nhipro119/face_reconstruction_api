@@ -29,8 +29,8 @@ def train_one_iteration(param, model, optimizer,pc_lst, epoch, iteration):
     #print ("model forward time" , datetime.now()-start)
     
     #start=datetime.now()
-    loss_pose = torch.zeros(1).cuda()
-    loss_laplace = torch.zeros(1).cuda()
+    loss_pose = torch.zeros(1).cpu()
+    loss_laplace = torch.zeros(1).cpu()
     if(param.w_pose >0):
         loss_pose = model.compute_geometric_loss_l1(in_pc_batch, out_pc_batch)
     if(param.w_laplace >0):
@@ -69,11 +69,11 @@ def evaluate(param, model, pc_lst,epoch,template_plydata, suffix, log_eval=True)
         batch = min(pc_num-n, param.batch)
         pcs = pc_lst[n:n+batch]
 
-        pcs_torch = torch.FloatTensor(pcs).cuda()
+        pcs_torch = torch.FloatTensor(pcs).cpu()
         if(param.augmented_data==True):
             pcs_torch = Dataloader.get_augmented_pcs(pcs_torch)
         if(batch<param.batch):
-            pcs_torch = torch.cat((pcs_torch, torch.zeros(param.batch-batch, param.point_num, 3).cuda()),0)
+            pcs_torch = torch.cat((pcs_torch, torch.zeros(param.batch-batch, param.point_num, 3).cpu()),0)
         out_pcs_torch = model(pcs_torch)
         geo_error_sum = geo_error_sum + model.compute_geometric_mean_euclidean_dist_error(pcs_torch, out_pcs_torch)*batch
 
@@ -100,7 +100,7 @@ def test(param, model, pc_lst, epoch, log_eval=True):
         batch = min(pc_num-n, param.batch)
         pcs = pc_lst[n:n+batch]
 
-        pcs_torch = torch.FloatTensor(pcs).cuda()
+        pcs_torch = torch.FloatTensor(pcs).cpu()
         if(param.augmented_data==True):
             pcs_torch = Dataloader.get_augmented_pcs(pcs_torch)
         
@@ -123,7 +123,7 @@ def train(param):
     print ("**********Initiate Netowrk**********")
     model=graphAE.Model(param)
     
-    model.cuda()
+    model.cpu()
     optimizer = torch.optim.Adam(params = model.parameters(), lr=param.lr, weight_decay=param.weight_decay)
     scheduler=torch.optim.lr_scheduler.StepLR(optimizer, param.lr_decay_epoch_step,gamma=param.lr_decay)
 
