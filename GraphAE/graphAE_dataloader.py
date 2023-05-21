@@ -288,7 +288,7 @@ def get_pcs_from_ply_folder(ply_folder):
     
     return pcs
     
-transform_plys_to_npy("D:\\data_3D\\ply", "D:\\data_3D\\ply")
+
 
 
 

@@ -10,18 +10,17 @@ class Application:
     def __init__(self):
         self.param = Param.Parameters()
         self.param.batch =1
-        self.param.read_config(".\\GraphAE\\0422_graphAE_dfaust\\10_conv_res.config")
-        self.param.read_weight_path = ".\\GraphAE\\0422_graphAE_dfaust\\weight_10\\model_epoch0201.weight"
+        self.param.read_config("./GraphAE/0422_graphAE_dfaust/10_conv_res.config")
+        self.param.read_weight_path = "./GraphAE/0422_graphAE_dfaust/weight_10/model_epoch0201.weight"
         self.model = graphAE.Model(param=self.param, test_mode=True)
         self.model.cpu()
-        checkpoint = torch.load(self.param.read_weight_path)
+        checkpoint = torch.load(self.param.read_weight_path,map_location=torch.device('cpu'))
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.init_test_mode()
         self.model.eval()
         
-        # ip = subprocess.check_output("wget -q -O- icanhazip.com",text=True, shell=True, stderr=subprocess.STDOUT).replace("\n","")
-        # self.link = "http://"+ip+":5001"
-        self.link = "a"
+        ip = subprocess.check_output("wget -q -O- icanhazip.com",text=True, shell=True, stderr=subprocess.STDOUT).replace("\n","")
+        self.link = "http://"+ip+":5001"
     def execute_predict(self, file_path):
         mesh = trimesh.exchange.load.load(file_path)
         ver = np.asarray(mesh.vertices)
@@ -54,8 +53,8 @@ class Application:
         mesh.vertices = ver
         return mesh
     def split_face(self):
-        input_obj_path = os.path.join("./wound_face_file",self.filename)
-        output_obj_path = os.path.join("./reconstruction_face_file", self.filename)
+        input_obj_path = os.path.join("./wounded_face_file",self.filename)
+        output_obj_path = os.path.join("./reconstructed_face_file", self.filename)
         obj_in = trimesh.load(input_obj_path)
         obj_out = trimesh.load(output_obj_path)
         ver_in = obj_in.vertices

@@ -14,11 +14,11 @@ class Api:
             if obj.filename == "":
                 return Response(json.dumps({"error":" do not have obj file "}),status=400,mimetype="application/json")
             obj_name = secure_filename(obj.filename)
-            self.path = os.path.join("./reconstruction_file",obj_name)
+            self.path = os.path.join("./wounded_face_file",obj_name)
             obj.save(self.path)
             obj_json = dict()
-            obj_json["reconstruction"] = self.app.execute_predict(self.path)
-            obj_json["split"] = self.app.split_face()
+            obj_json["reconstructed_face"] = self.app.execute_predict(self.path)
+            obj_json["split_wound"] = self.app.split_face()
             return Response(json.dumps(obj_json))
     def get_reconstruction_file(self):
         if request.method =="GET":

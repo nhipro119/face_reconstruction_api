@@ -1,7 +1,7 @@
 import flask
 import Config.reader as reader
 import json
-import Delivery.handler as handler
+import delivery.handler as handler
 from flask_cors import CORS, cross_origin
 # Get config
 server_config = reader.Reader()
@@ -16,7 +16,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 # DEBUG flag
 # app.config["DEBUG"] = True
 
-app = handler.Handle().setup(app)
+app = handler.Handler().setup(app)
 if __name__ == "__main__":
 
    

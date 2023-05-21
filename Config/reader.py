@@ -2,8 +2,8 @@ import yaml
 class Reader:
 
 
-    CONFIG_DIR_SERVER = "Config/SERVICE_CONFIG.yaml"
-    CONFIG_DIR_AI_SERVER = "Config/AI_SERVER_CONFIG.yaml"
+    CONFIG_DIR_SERVER = "./Config/service_config.yaml"
+    CONFIG_DIR_AI_SERVER = "./Config/server_config.yaml"
     
     def __init__(self):
         pass
